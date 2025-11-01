@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SpotiCards"
+version = "0.1.0"
+description = "Generate song cards with metadata and QR codes from any Spotify playlist."
+authors = [
+    { name = "Lara Fuchs", email = "lara25fuchs@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  # none yet — will add later
+]
+license = { text = "MIT" }
+
+[project.urls]
+"Homepage" = "https://github.com/Lara-lob/SpotiCards"
+"Bug Tracker" = "https://github.com/Lara-lob/SpotiCards/issues"
