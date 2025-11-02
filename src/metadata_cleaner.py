@@ -32,23 +32,38 @@ def clean_title(name: str, remove_version: bool = False) -> str:
     name = re.sub(r"\s+[-–]+\s*$", "", name).strip()
     return name
 
-def clean_track_metadata(raw_tracks: list[dict]) -> list[dict]:
-    """
-    Clean and standardize track metadata.
-    Args:
-        raw_tracks (list[dict]): List of raw track metadata dictionaries
-    Returns:
-        list[dict]: List of cleaned track metadata dictionaries
-    """
-    cleaned_tracks = []
-    for track in raw_tracks:
-        date = track.get("release_date", "")
-        try:
-            year = int(date[:4]) if date else None
-        except ValueError:
-            year = None
 
-        cleaned_track = {
+# TODO: find original release date
+def clean_track_metadata(track: dict, log: bool = True) -> dict | None:
+    """
+    Clean and standardize single track metadata to ensure required fields are present and correct.
+    Args:
+        track (dict): Track metadata dictionary
+        log (bool): Whether to log invalid tracks
+    Returns:
+        dict | None: Validated track metadata or None if invalid
+    """
+    # Validate essential fields
+    name = track.get("name")
+    artists = track.get("artists")
+    uri = track.get("spotify_uri")
+    release_date = track.get("release_date", "")
+
+    if not name or not artists or not uri:
+        if log:
+            print(f"Skipping track due to missing metadata: {name or 'Unknown'}")
+        return None
+    
+    # Extract release year
+    try:
+        year = int(release_date[:4]) if release_date else None
+    except ValueError:
+        if log:
+            print(f"Skipping track due to invalid release date: {name} -> {release_date}")
+        return None
+    
+    # Build cleaned track metadata
+    clean_track = {
             "name_original": track["name"],
             "name_cleaned": clean_title(track["name"], remove_version=False),
             "artists": ", ".join(track["artists"]),
@@ -56,5 +71,21 @@ def clean_track_metadata(raw_tracks: list[dict]) -> list[dict]:
             "release_year": year,
             "spotify_uri": track["spotify_uri"]
         }
-        cleaned_tracks.append(cleaned_track)
-    return cleaned_tracks
+    
+    return clean_track
+
+
+def clean_playlist_metadata(raw_tracks: list[dict]) -> list[dict]:
+    """
+    Clean and standardize track metadata for playlist.
+    Args:
+        raw_tracks (list[dict]): List of raw track metadata dictionaries
+    Returns:
+        list[dict]: List of cleaned track metadata dictionaries
+    """
+    clean_tracks = []
+    for track in raw_tracks:
+        clean_track = clean_track_metadata(track)
+        clean_tracks.append(clean_track)
+    print(f"Cleaned metadata for {len(clean_tracks)}/{len(raw_tracks)} tracks.")
+    return clean_tracks
