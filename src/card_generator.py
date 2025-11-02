@@ -1,8 +1,12 @@
 # src/card_generator.py
 from io import BytesIO
+from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 import qrcode
 from qrcode.constants import ERROR_CORRECT_H
+from typing import Tuple
+
+from storage import save_card_image
 
 
 
@@ -32,13 +36,16 @@ def generate_qr_code(data: str, size: int = 300, border: int = 4,
     return img
 
 
-def generate_card_front(track: dict, card_size: int = 800) -> Image.Image:
+def generate_card_front(
+        track: dict, card_size: int = 800, design_option: str = "simple"
+        ) -> Image.Image:
     """
     Generate the front side of a song card.
     
     Args:
         track (dict): Track metadata dictionary
         card_size (int): Size of the card image (pixels)
+        design_option (str): Design option for the card front
     Returns:
         Image.Image: Generated card front image
     """
@@ -85,7 +92,8 @@ def generate_card_front(track: dict, card_size: int = 800) -> Image.Image:
 
 
 def generate_card_back(
-        track: dict, card_size: int = 800, qr_ratio: float = 0.5, qr_border_ratio: float = 0.01
+        track: dict, card_size: int = 800, qr_ratio: float = 0.5, qr_border_ratio: float = 0.01,
+        design_option: str = "simple"
         ) -> Image.Image:
     """
     Generate the back side of a song card.
@@ -95,6 +103,7 @@ def generate_card_back(
         card_size (int): Size of the card image (pixels)
         qr_ratio (float): Ratio of QR code size to card size
         qr_border_ratio (float): Ratio of QR code border size to card size
+        design_option (str): Design option for the card back
     Returns:
         Image.Image: Generated card back image
     """
@@ -117,3 +126,37 @@ def generate_card_back(
     img.paste(qr_with_border, (qr_x, qr_y))
 
     return img
+
+
+def generate_and_save_cards_for_track(
+        track: dict, output_dir: Path, design_option: str = "simple"
+        ) -> Tuple[Image.Image, Image.Image]:
+    """
+    Generate and save both front and back card images for a given track.
+    
+    Args:
+        track (dict): Track metadata dictionary
+        design_option (str): Design option for the cards
+    Returns:
+        Tuple[Image.Image, Image.Image]: Generated card front and back images
+    """
+    year = track["release_year"]
+    cleaned_name = track["name_cleaned"]
+    filename_base = f"{year}_{cleaned_name}".replace(" ", "_")
+    
+    front_img = generate_card_front(track, design_option=design_option)
+    back_img = generate_card_back(track, design_option=design_option)
+
+    save_card_image(front_img, output_dir, f"{filename_base}_front")
+    save_card_image(back_img, output_dir, f"{filename_base}_back")
+    
+    return front_img, back_img
+
+
+def generate_and_save_cards_for_playlist(
+        tracks: list[dict], output_dir: Path, design_option: str = "simple"
+        ) -> None:
+    for track in tracks:
+        generate_and_save_cards_for_track(track, output_dir, design_option)
+
+    print(f"Generated cards saved to {output_dir}.")
