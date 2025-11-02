@@ -1,4 +1,5 @@
 # src/main.py
+from metadata_cleaner import clean_track_metadata
 from spotify_api import get_playlist_info, get_playlist_tracks
 from storage import save_metadata, load_metadata, get_playlist_data_dirs
 
@@ -16,7 +17,8 @@ def main():
         f"by {playlist_info['owner']}")
     
     # fetch playlist tracks
-    tracks = get_playlist_tracks(playlist_input)
+    raw_tracks = get_playlist_tracks(playlist_input)
+    tracks = clean_track_metadata(raw_tracks)
     print(f"Fetched {len(tracks)} tracks from the playlist.")
 
     # save track metadata to JSON file
