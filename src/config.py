@@ -1,5 +1,5 @@
 # src/config.py
-from Pathlib import Path
+from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
 
