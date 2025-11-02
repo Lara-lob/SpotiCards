@@ -1,13 +1,17 @@
 # src/storage.py
 import json
 import re
+import shutil
+
 from pathlib import Path
 from PIL import Image
+from typing import Tuple
 
 from config import METADATA_DIR, CARDS_DIR
 
 
 
+# Utility functions
 def sanitize_name(name: str) -> str:
     """
     Sanitize a string to be safe for use as a path.
@@ -20,15 +24,17 @@ def sanitize_name(name: str) -> str:
     return sanitized.strip()[:100]
 
 
-def get_playlist_data_dirs(custom_name: str, playlist_name: str, playlist_id: str) -> tuple[Path, Path]:
+# TODO: add option to add to existing output
+def get_playlist_data_dirs(custom_name:str, playlist_name:str, playlist_id:str) -> tuple[Path, Path]:
     """
-    Get and create the metadata and cards directory paths for a given playlist.
+    Determine output directories and check for existing data.
+    Handles naming conflicts through user prompts.
     Args:
         custom_name (str): Custom name for the playlist
         playlist_name (str): Name of the playlist
         playlist_id (str): Spotify ID of the playlist
     Returns:
-        tuple[Path, Path]: (metadata_dir, cards_dir) paths
+        tuple[Path, Path]: (metadata directory, cards directory)
     """
     folder_name = sanitize_name(custom_name) if custom_name else sanitize_name(playlist_name)
     if not folder_name:
@@ -37,6 +43,34 @@ def get_playlist_data_dirs(custom_name: str, playlist_name: str, playlist_id: st
     metadata_folder = METADATA_DIR / folder_name
     cards_folder = CARDS_DIR / folder_name
 
+    # Check for existing data and handle conflicts
+    if metadata_folder.exists() and any(metadata_folder.iterdir()) or \
+       cards_folder.exists() and any(cards_folder.iterdir()):
+        print(f"Data for '{folder_name}' already exists.")
+        while True:
+            choice = input("Choose an action - (O)verwrite, (R)ename, (C)ancel: ").strip().upper()
+            if choice == 'O':
+                if metadata_folder.exists():
+                    shutil.rmtree(metadata_folder)
+                if cards_folder.exists():
+                    shutil.rmtree(cards_folder)
+                print("Existing data deleted.")
+                break
+            elif choice == 'R':
+                new_name = input("Enter a new name for the playlist folder: ").strip()
+                folder_name = sanitize_name(new_name) if new_name else playlist_id
+                metadata_folder = METADATA_DIR / folder_name
+                cards_folder = CARDS_DIR / folder_name
+                if not metadata_folder.exists() and not cards_folder.exists():
+                    break
+                else:
+                    print(f"Folder '{folder_name}' also exists. Please choose another name.")
+            elif choice == 'C':
+                print("Operation cancelled by user.")
+                exit(0)
+            else:
+                print("Invalid choice. Please enter O, R, or C.")
+
     # Ensure directories exist
     metadata_folder.mkdir(parents=True, exist_ok=True)
     cards_folder.mkdir(parents=True, exist_ok=True)
@@ -44,6 +78,7 @@ def get_playlist_data_dirs(custom_name: str, playlist_name: str, playlist_id: st
     return metadata_folder, cards_folder
 
 
+# Saving and loading output
 def save_metadata(
         tracks: list[dict],
         dir: Path = METADATA_DIR,
