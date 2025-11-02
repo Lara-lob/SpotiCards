@@ -25,7 +25,9 @@ def sanitize_name(name: str) -> str:
 
 
 # TODO: add option to add to existing output
-def get_playlist_data_dirs(custom_name:str, playlist_name:str, playlist_id:str) -> tuple[Path, Path]:
+def get_playlist_data_dirs(
+        custom_name:str, playlist_name:str, playlist_id:str, overwrite: bool = True
+        ) -> tuple[Path, Path]:
     """
     Determine output directories and check for existing data.
     Handles naming conflicts through user prompts.
@@ -33,6 +35,7 @@ def get_playlist_data_dirs(custom_name:str, playlist_name:str, playlist_id:str) 
         custom_name (str): Custom name for the playlist
         playlist_name (str): Name of the playlist
         playlist_id (str): Spotify ID of the playlist
+        overwrite (bool): Whether to overwrite existing data without prompts
     Returns:
         tuple[Path, Path]: (metadata directory, cards directory)
     """
@@ -48,7 +51,8 @@ def get_playlist_data_dirs(custom_name:str, playlist_name:str, playlist_id:str) 
        cards_folder.exists() and any(cards_folder.iterdir()):
         print(f"Data for '{folder_name}' already exists.")
         while True:
-            choice = input("Choose an action - (O)verwrite, (R)ename, (C)ancel: ").strip().upper()
+            choice = 'O' if overwrite else \
+            input("Choose an action - (O)verwrite, (R)ename, (C)ancel: ").strip().upper()
             if choice == 'O':
                 if metadata_folder.exists():
                     shutil.rmtree(metadata_folder)
@@ -131,4 +135,3 @@ def save_card_image(img: Image.Image, output_dir: Path, filename: str) -> Path:
 
 
 # TODO: add function to compare existing metadata and update if needed and remove duplicates
-# TODO: sort tracks by release year when saving
