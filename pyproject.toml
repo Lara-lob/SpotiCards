@@ -19,3 +19,6 @@ license = { text = "MIT" }
 [project.urls]
 "Homepage" = "https://github.com/Lara-lob/SpotiCards"
 "Bug Tracker" = "https://github.com/Lara-lob/SpotiCards/issues"
+
+[project.scripts]
+spoticards = "main:main"
