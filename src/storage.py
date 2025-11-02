@@ -2,6 +2,7 @@
 import json
 import re
 from pathlib import Path
+from PIL import Image
 
 from config import METADATA_DIR, CARDS_DIR
 
@@ -73,3 +74,26 @@ def load_metadata(filename: str = "track_metadata.json") -> list[dict]:
     with open(metadata_path, "r", encoding="utf-8") as f:
         tracks = json.load(f)
     return tracks
+
+
+def save_card_image(img: Image.Image, output_dir: Path, filename: str) -> Path:
+    """
+    Save a Pillow Image object as a PNG file.
+
+    Args:
+        img (Image.Image): Pillow Image object to save
+        output_dir (Path): Directory to save the image
+        filename (str): Filename without extension
+
+    Returns:
+        Path object of the saved image
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    save_path = output_dir / f"{filename}.png"
+    img.save(save_path, format="PNG")
+
+    return save_path
+
+
+# TODO: add function to compare existing metadata and update if needed and remove duplicates
+# TODO: sort tracks by release year when saving
