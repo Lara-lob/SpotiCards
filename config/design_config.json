@@ -1,0 +1,32 @@
+{
+    "simple": {
+        "front": {
+            "background_color": ["#FFFFFF"],
+            "font_color": ["#000000"],
+            "font": "fonts/Momo_Trust_Display/MomoTrustDisplay-Regular.ttf", 
+            "background_image": null
+        },
+        "back": {
+            "background_color": ["#000000"],
+            "border_color": "#FFFFFF",
+            "qr_center_icon": null,
+            "qr_background_image": null
+        }
+    },
+
+
+    "vaporwave": {
+        "front": {
+            "background_color": ["#FFFFFF"],
+            "font_color": ["#3ccbd6", "#18d9bb", "#c0f4f9", "#df00ff"],
+            "font": "fonts/Orbitron/static/Orbitron-ExtraBold.ttf",
+            "background_image": "designs/vaporwave/front_images"
+        },
+        "back": {
+            "background_color": ["#000000"],
+            "border_color": "#FFFFFF",
+            "qr_center_icon": "designs/vaporwave/back_images/play_button_black_round.png",
+            "qr_background_image": "designs/vaporwave/back_images/neon_circles.png"
+        }
+    }
+}

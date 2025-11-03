@@ -4,6 +4,7 @@ from spotify_api import get_playlist_info, get_playlist_tracks
 from storage import save_metadata, load_metadata, get_playlist_data_dirs, save_card_image
 
 from card_generator import generate_and_save_cards_for_playlist
+from config import get_design, load_designs
 from metadata_cleaner import clean_playlist_metadata
 
 
@@ -13,7 +14,7 @@ def parse_args():
     parser.add_argument("--playlist", type=str, help="Spotify playlist URL or ID")
     parser.add_argument("--custom-name", type=str, help="Custom folder name for playlist")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing data without prompts")
-    parser.add_argument("--design", type=str, choices=["simple", "colors"], help="Card design option") # TODO: expand design options
+    parser.add_argument("--design", type=str, choices=["simple", "colors", "vaporwave"], help="Card design option") # TODO: expand design options
     parser.add_argument("--skip-prompts", action="store_true", help="Skip interactive prompts and use defaults")
     return parser.parse_args()
 
@@ -44,8 +45,12 @@ def main():
     metadata_dir, cards_dir = get_playlist_data_dirs(
         custom_name, playlist_info['name'], playlist_info['id'], overwrite=overwrite)
     
-    # choose design option
+    # choose design option TODO: include available designs dynamically
     design_option = get_input_or_default("Choose card design option: ", args.design, "simple", skip_prompts)
+    designs = load_designs()
+    if design_option not in designs:
+        print(f"Design option '{design_option}' not found. Using 'simple' design.")
+    design = get_design(design_option)
 
     # fetch playlist tracks
     raw_tracks = get_playlist_tracks(playlist_input)
@@ -55,7 +60,7 @@ def main():
     save_metadata(tracks, dir=metadata_dir)
 
     # generate and save cards (front and back) for each track
-    generate_and_save_cards_for_playlist(tracks, cards_dir, design_option=design_option)
+    generate_and_save_cards_for_playlist(tracks, cards_dir, design=design)
 
 if __name__ == "__main__":
     main()
