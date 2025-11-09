@@ -39,18 +39,32 @@ def main():
         f"Playlist: {playlist_info['name']} "
         f"({playlist_info['num_tracks']} tracks) "
         f"by {playlist_info['owner']}")
-    
-    # set up output directories
-    custom_name = get_input_or_default("Enter custom folder name: ", args.custom_name, "", skip_prompts)
+
+        # set up output directories
+    custom_name = get_input_or_default(
+        "Enter custom folder name (Press Enter to use playlist name): ",
+        args.custom_name, "", skip_prompts)
     metadata_dir, cards_dir = get_playlist_data_dirs(
         custom_name, playlist_info['name'], playlist_info['id'], overwrite=overwrite)
     
     # choose design option TODO: include available designs dynamically
-    design_option = get_input_or_default("Choose card design option: ", args.design, "simple", skip_prompts)
+    design_option = get_input_or_default(
+        "Choose card design option\n"\
+        "(1) simple: black/white minimal \n"\
+        "(2) colors: colorful backgrounds\n"\
+        "(3) vaporwave: retro aesthetic with neon colors\n"\
+        "Enter choice (1-3) or design name: ", 
+    args.design, "simple", skip_prompts)
     designs = load_designs()
+    design_option = {
+        "1": "simple",
+        "2": "colors",
+        "3": "vaporwave"
+    }.get(design_option, design_option)
     if design_option not in designs:
         print(f"Design option '{design_option}' not found. Using 'simple' design.")
     design = get_design(design_option)
+
 
     # fetch playlist tracks
     raw_tracks = get_playlist_tracks(playlist_input)

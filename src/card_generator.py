@@ -5,7 +5,6 @@ from PIL import Image, ImageDraw, ImageFont
 import qrcode
 from qrcode.constants import ERROR_CORRECT_H
 from random import choice
-import textwrap
 from typing import Tuple
 
 from config import resolve_asset_path
@@ -89,7 +88,7 @@ def generate_card_front(
     # get design values
     design = design.get("front", {})
     background_color = choice(design.get("background_color", ["#FFFFFF"]))
-    bg_image_path = resolve_asset_path(design.get("background_images"))
+    bg_image_path = resolve_asset_path(design.get("background_image"))
     font_color = choice(design.get("font_color", ["#000000"]))
     font_path = design.get("font")
     font = resolve_asset_path(font_path) if font_path else None
