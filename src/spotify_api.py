@@ -102,3 +102,56 @@ def get_playlist_tracks(input_str: str) -> list[dict]:
         offset += limit
     
     return tracks
+
+def get_earliest_release_spotify(track: dict) -> dict:
+    """
+    Search for earliest release date on Spotify.
+    Args:
+        track (dict): Track metadata dictionary
+    Returns:
+        dict: Track metadata with potentially updated release date
+              and flag 'validate_release' set to True if conflicting dates found
+    """
+    # extract track details
+    name = track.get("name_cleaned", track.get("name_original", ""))
+    artist_str = track.get("artists", "")
+    artist = artist_str.split(",")[0].strip() if artist_str else ""
+    release_year = track.get("release_year")    
+    
+    # set flag to False initially
+    track['validate_release'] = False
+
+    # search Spotify for track
+    sp = authenticate_spotify()
+
+    query = f'track:{name} artist:{artist}'
+    try:
+        results = sp.search(q=query, type='track', limit=20)
+    except Exception as e:
+        print(f"Spotify search failed for '{name}' by '{artist}': {e}")
+        track['validate_release'] = True
+        return track
+    
+    # extract release years
+    years = set()
+    for item in results.get("tracks", {}).get("items", []):
+        date = item["album"].get("release_date")
+        if not date:
+            continue
+
+        match = re.match(r"(\d{4})", date)
+        if match:
+            years.add(int(match.group(1)))
+
+    if not years:
+        track['validate_release'] = True
+        return track
+    
+    # determine earliest year
+    earliest_year = min(years)
+    if release_year and earliest_year != release_year:
+        track['validate_release'] = True
+        track['original_release_year'] = release_year
+        track['release_year'] = earliest_year
+    
+    return track

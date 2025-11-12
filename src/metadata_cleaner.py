@@ -1,6 +1,6 @@
 # src/metadata_cleaner.py
-from datetime import datetime
 import re
+from spotify_api import get_earliest_release_spotify
 
 
 
@@ -33,7 +33,6 @@ def clean_title(name: str, remove_version: bool = False) -> str:
     return name
 
 
-# TODO: find original release date
 def clean_track_metadata(track: dict, log: bool = True) -> dict | None:
     """
     Clean and standardize single track metadata to ensure required fields are present and correct.
@@ -75,17 +74,20 @@ def clean_track_metadata(track: dict, log: bool = True) -> dict | None:
     return clean_track
 
 
-def clean_playlist_metadata(raw_tracks: list[dict]) -> list[dict]:
+def clean_playlist_metadata(raw_tracks: list[dict], get_original_release: bool = True) -> list[dict]:
     """
     Clean and standardize track metadata for playlist.
     Args:
         raw_tracks (list[dict]): List of raw track metadata dictionaries
+        get_original_release (bool): Whether to verify and get earliest release year from Spotify
     Returns:
         list[dict]: List of cleaned track metadata dictionaries
     """
     clean_tracks = []
     for track in raw_tracks:
         clean_track = clean_track_metadata(track)
+        if get_original_release:
+            clean_track = get_earliest_release_spotify(clean_track)
         clean_tracks.append(clean_track)
     print(f"Cleaned metadata for {len(clean_tracks)}/{len(raw_tracks)} tracks.")
     return clean_tracks
