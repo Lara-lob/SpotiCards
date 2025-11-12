@@ -2,6 +2,10 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "config*"]
+
 [project]
 name = "SpotiCards"
 version = "0.1.0"
@@ -21,4 +25,4 @@ license = { text = "MIT" }
 "Bug Tracker" = "https://github.com/Lara-lob/SpotiCards/issues"
 
 [project.scripts]
-spoticards = "main:main"
+spoticards = "src.cli.main:main"

@@ -1,6 +1,6 @@
-# src/metadata_cleaner.py
+# src/core/metadata.py
 import re
-from spotify_api import get_earliest_release_spotify
+from .spotify_client import get_earliest_release_spotify
 
 
 

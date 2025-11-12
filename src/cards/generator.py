@@ -1,4 +1,4 @@
-# src/card_generator.py
+# src/cards/generator.py
 from io import BytesIO
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -7,8 +7,8 @@ from qrcode.constants import ERROR_CORRECT_H
 from random import choice
 from typing import Tuple
 
-from config import resolve_asset_path
-from storage import save_card_image
+from ..config import resolve_asset_path
+from .storage import save_card_image
 
 
 

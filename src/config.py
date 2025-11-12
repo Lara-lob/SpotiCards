@@ -1,23 +1,17 @@
 # src/config.py
 import json
 from pathlib import Path
+import sys
 
-BASE_DIR = Path(__file__).parent.parent
+# Add project root to path to import from config package
+_project_root = Path(__file__).parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
 
-# Base data directory
-DATA_DIR = BASE_DIR / "data"
+from config.settings import CONFIG_DIR, ASSETS_DIR, DATA_DIR
 
-# Subdirectories
-METADATA_DIR = DATA_DIR / "metadata"
-CARDS_DIR = DATA_DIR / "cards"
 
-# Ensure directories exist
-for directory in [DATA_DIR, METADATA_DIR, CARDS_DIR]:
-    directory.mkdir(parents=True, exist_ok=True)
-
-CONFIG_DIR = BASE_DIR / "config"
 CONFIG_PATH = CONFIG_DIR / "design_config.json"
-ASSETS_DIR = BASE_DIR / "assets"
 
 
 def load_designs() -> dict:
@@ -27,7 +21,7 @@ def load_designs() -> dict:
         dict: All designs from JSON
     """
     if not CONFIG_PATH.exists():
-        raise FileNotFoundError(f"Design configuration file not found: {DESIGN_CONFIG_PATH}")
+        raise FileNotFoundError(f"Design configuration file not found: {CONFIG_PATH}")
 
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -37,7 +31,7 @@ def get_design(name: str) -> dict:
     Load and normalize a specific card design configuration by name.
     """
     designs = load_designs()
-    design = designs.get(name, designs["simple"]) # default to simple design
+    design = designs.get(name, designs["simple"])  # default to simple design
 
     # Merge with default to ensure all fields are present
     design = {

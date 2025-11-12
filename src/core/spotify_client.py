@@ -1,4 +1,4 @@
-# src/spotify_api.py
+# src/core/spotify_client.py
 import os
 import re
 
