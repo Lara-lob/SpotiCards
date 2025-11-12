@@ -25,36 +25,86 @@ def load_designs() -> dict:
 
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
-    
-def get_design(name: str) -> dict:
+
+
+def _deep_merge(base: dict, override: dict) -> dict:
+    """
+    Deep merge two dictionaries, with override taking precedence.
+    """
+    result = base.copy()
+    for key, value in override.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = _deep_merge(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def _validate_and_warn(design_name: str, design: dict, defaults: dict, path: str = "") -> None:
+    """
+    Validate design structure and warn about missing fields.
+    Args:
+        design_name: Name of the design being validated
+        design: Current design dict
+        defaults: Default design dict for comparison
+        path: Current path in nested structure (for error messages)
+    """
+    for key, default_value in defaults.items():
+        current_path = f"{path}.{key}" if path else key
+        
+        if key not in design:
+            print(f"⚠️  Missing '{current_path}' in design '{design_name}', using default")
+        elif isinstance(default_value, dict) and isinstance(design[key], dict):
+            # Recursively validate nested dicts
+            _validate_and_warn(design_name, design[key], default_value, current_path)
+
+
+def get_design(name: str, validate: bool = False) -> dict:
     """
     Load and normalize a specific card design configuration by name.
+    Args:
+        name: Name of the design to load
+        validate: Whether to validate and warn about missing fields
+    Returns:
+        dict: Complete design configuration with defaults applied
     """
     designs = load_designs()
-    design = designs.get(name, designs["simple"])  # default to simple design
-
-    # Merge with default to ensure all fields are present
-    design = {
-        "front": {**designs["simple"]["front"], **design.get("front", {})},
-        "back": {**designs["simple"]["back"], **design.get("back", {})}
+    
+    # Get the simple design as default
+    defaults = designs.get("simple")
+    if not defaults:
+        raise ValueError("'simple' design must be defined as the default")
+    
+    # Get requested design or fallback to simple
+    if name not in designs:
+        print(f"⚠️  Design '{name}' not found, using 'simple' design")
+        return defaults
+    
+    design = designs[name]
+    
+    # Validate before merging (optional)
+    if validate and name != "simple":
+        for side in ["front", "back"]:
+            if side in design:
+                _validate_and_warn(name, design.get(side, {}), defaults[side], side)
+    
+    # Deep merge with defaults
+    result = {
+        "front": _deep_merge(defaults["front"], design.get("front", {})),
+        "back": _deep_merge(defaults["back"], design.get("back", {}))
     }
+    
+    return result
 
-    # convert entries into lists
-    fields = ["background_color", "font_color"]
-    for side in ["front", "back"]:
-        for key in fields:
-            value = design[side].get(key)
-            if value is None:
-                design[side][key] = []
-            elif isinstance(value, str):
-                design[side][key] = [value]
-            elif isinstance(value, list):
-                design[side][key] = value
-            else:
-                raise ValueError(f"Invalid type for {key} in {side} design: {type(value)}")
-    return design
 
 def resolve_asset_path(path_str: str | None) -> Path | None:
+    """
+    Resolve asset path relative to ASSETS_DIR if not absolute.
+    Args:
+        path_str: Path string or None
+    Returns:
+        Resolved Path object or None
+    """
     if not path_str:
         return None
     p = Path(path_str)

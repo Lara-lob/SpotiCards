@@ -73,7 +73,7 @@ def create_cards(args):
     
     if design_option not in designs:
         print(f"Design option '{design_option}' not found. Using 'simple' design.")
-    design = get_design(design_option)
+    design = get_design(design_option, validate=args.validate_design)
 
     # fetch playlist tracks
     raw_tracks = get_playlist_tracks(playlist_input)
@@ -98,5 +98,6 @@ def add_create_parser(subparsers):
     parser.add_argument("--custom-name", type=str, help="Custom folder name for playlist")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing data without prompts")
     parser.add_argument("--design", type=str, choices=["simple", "colors", "vaporwave"], help="Card design option")
+    parser.add_argument("--validate-design", action="store_true", help="Validate design configuration and warn about missing fields")
     parser.add_argument("--skip-prompts", action="store_true", help="Skip interactive prompts and use defaults")
     parser.set_defaults(func=create_cards)
