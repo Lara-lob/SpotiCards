@@ -1,5 +1,4 @@
 # src/cards/generator.py
-from io import BytesIO
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 import qrcode

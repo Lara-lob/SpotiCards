@@ -1,7 +1,4 @@
 # src/cli/create.py
-import argparse
-from pathlib import Path
-
 from ..core.spotify_client import get_playlist_info, get_playlist_tracks
 from ..core.metadata import clean_playlist_metadata
 from ..cards.storage import save_metadata, get_playlist_data_dirs

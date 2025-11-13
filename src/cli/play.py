@@ -1,5 +1,4 @@
 # src/cli/play.py
-import argparse
 
 
 def play_game(args):
