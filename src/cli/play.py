@@ -50,7 +50,7 @@ def play_game(args):
     
     # Launch GUI
     from ..game.gui import main as launch_gui
-    launch_gui()
+    launch_gui(tracks, cards_dir=playlist_path / "cards")
 
 
 def add_play_parser(subparsers):

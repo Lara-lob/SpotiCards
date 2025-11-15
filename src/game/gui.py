@@ -4,13 +4,22 @@ from PySide6.QtCore import Qt
 from pathlib import Path
 import sys
 
+from .card_loader import get_card_image_path
+from .state import GameState
+
 
 
 class GameWindow(QMainWindow):
     """Main game window."""
     
-    def __init__(self):
+    def __init__(self, game_state: GameState, cards_dir: Path):
         super().__init__()
+        self.game_state = game_state
+        self.cards_dir = cards_dir
+        
+        self.setup_ui()
+
+    def setup_ui(self):
         self.setWindowTitle("SpotiCards Game")
         self.setGeometry(100, 100, 1200, 800)  # x, y, width, height
         
@@ -31,11 +40,23 @@ class GameWindow(QMainWindow):
         pass
        
 
-def main():
-    """Launch the game GUI."""
+def main(tracks: list[dict], cards_dir: Path):
+    """
+    Launch the game GUI.
+
+    Args:
+        tracks: List of playlist track metadata dictionaries
+        cards_dir: Path to directory containing cards
+    """
     app = QApplication(sys.argv)
-    window = GameWindow()
+
+    # Create game state
+    game_state = GameState(tracks, target_cards=10)
+
+    # Create game window
+    window = GameWindow(game_state, cards_dir)
     window.show()
+
     sys.exit(app.exec())
 
 
