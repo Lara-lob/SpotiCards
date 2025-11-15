@@ -1,18 +1,56 @@
 # src/cli/play.py
+from ..core.data_loader import get_available_playlists, load_playlist_metadata
+from ..config import DATA_DIR
+
 
 
 def play_game(args):
     """
     Main function for playing the timeline game.
-    (Placeholder for future implementation)
     """
-    print("Game functionality coming soon!")
-    print(f"Folder: {args.folder if args.folder else 'Not specified'}")
+    if args.list:
+        playlists = get_available_playlists(DATA_DIR / "playlists")
+        if not playlists:
+            print("No playlists found. Create one first with 'spoticards create'")
+            return
+        print("\nAvailable playlists:")
+        for p in playlists:
+            print(f"  - {p}")
+        return
     
-    # TODO: Implement game logic
-    # - Load playlist data from folder
-    # - Initialize game state
-    # - Start game loop
+    # Get playlist folder
+    if not args.folder:
+        playlists = get_available_playlists(DATA_DIR / "playlists")
+        if not playlists:
+            print("No playlists found. Create one first with 'spoticards create'")
+            return
+        if len(playlists) == 1:
+            folder = playlists[0]
+            print(f"Using playlist: {folder}")
+        else:
+            print("Available playlists:")
+            for p in playlists:
+                print(f"  - {p}")
+            folder = input("\nEnter playlist folder name: ").strip()
+    else:
+        folder = args.folder
+    
+    # Load playlist data
+    playlist_path = DATA_DIR / "playlists" / folder
+    if not playlist_path.exists():
+        print(f"Playlist folder not found: {folder}")
+        return
+    
+    tracks = load_playlist_metadata(playlist_path)
+    if not tracks:
+        print(f"No metadata found in {folder}")
+        return
+    
+    print(f"Loaded {len(tracks)} tracks from '{folder}'")
+    
+    # Launch GUI
+    from ..game.gui import main as launch_gui
+    launch_gui()
 
 
 def add_play_parser(subparsers):
