@@ -27,7 +27,7 @@ pip install -e .
 3. Click "Create an App"
 4. Fill in the app name and description (can be anything)
 5. Once created, note your **Client ID** and **Client Secret**
-6. Click "Edit Settings" and add `http://localhost:8888/callback` to the Redirect URIs
+6. Click "Edit Settings" and add `https://example.com/callback` to the Redirect URIs
 7. Save the settings
 
 ## Configuration
@@ -90,6 +90,6 @@ spoticards create --generate-printable
 Generated cards are saved to `data/playlists/<playlist_name>/cards/`:
 - `YYYY_Song_Title_front.png` - Front side with song info
 - `YYYY_Song_Title_back.png` - Back side with QR code
-- *optional* `printable_cards.pdf` - A4 sheets for easy printing (```--generate-printable``` argument)
+- *optional* `printable_cards.pdf` - A4 sheets for easy printing (`--generate-printable` argument)
 
 Metadata is saved to `data/playlists/<playlist_name>/metadata.json`
