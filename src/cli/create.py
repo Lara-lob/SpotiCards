@@ -2,7 +2,7 @@
 from ..core.spotify_client import get_playlist_info, get_playlist_tracks
 from ..core.metadata import clean_playlist_metadata
 from ..cards.storage import save_metadata, get_playlist_data_dirs
-from ..cards.generator import generate_and_save_cards_for_playlist
+from ..cards.generator import generate_and_save_cards_for_playlist, generate_a4_pdf
 from ..config import get_design, load_designs
 
 
@@ -81,6 +81,10 @@ def create_cards(args):
 
     # generate and save cards (front and back) for each track
     generate_and_save_cards_for_playlist(tracks, cards_dir, design=design)
+    if args.generate_printable:
+        pdf_output_path = cards_dir / "printable_cards.pdf"
+        generate_a4_pdf(playlist_dir, pdf_output_path)
+        print(f"Generated printable PDF at {pdf_output_path}")
 
 
 def add_create_parser(subparsers):
@@ -95,6 +99,7 @@ def add_create_parser(subparsers):
     parser.add_argument("--custom-name", type=str, help="Custom folder name for playlist")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing data without prompts")
     parser.add_argument("--design", type=str, choices=["simple", "colors", "vaporwave"], help="Card design option")
+    parser.add_argument("--generate-printable", action="store_true", help="Generate printable PDF sheets of cards")
     parser.add_argument("--validate-design", action="store_true", help="Validate design configuration and warn about missing fields")
     parser.add_argument("--skip-prompts", action="store_true", help="Skip interactive prompts and use defaults")
     parser.set_defaults(func=create_cards)

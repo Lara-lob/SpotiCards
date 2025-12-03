@@ -1,14 +1,17 @@
 # src/cards/generator.py
 from pathlib import Path
+import math
 from PIL import Image, ImageDraw, ImageFont
 import qrcode
 from qrcode.constants import ERROR_CORRECT_H
 from random import choice
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 from typing import Tuple
 
 from ..config import resolve_asset_path
+from ..core.data_loader import load_playlist_metadata
 from .storage import save_card_image
-
 
 
 def generate_qr_code(data: str, size: int = 300, border: int = 4,
@@ -273,6 +276,20 @@ def generate_card_back(
     return img
 
 
+def get_card_filename(track: dict) -> str:
+    """
+    Generate standardized filename base card image.
+    
+    Args:
+        track (dict): Track metadata dictionary
+    Returns:
+        str: Filename base for card image
+    """
+    year = track["release_year"]
+    cleaned_name = track["name_cleaned"]
+    return f"{year}_{cleaned_name}".replace(" ", "_")
+
+
 def generate_and_save_cards_for_track(
         track: dict, output_dir: Path, design: dict,
         ) -> Tuple[Image.Image, Image.Image]:
@@ -286,10 +303,8 @@ def generate_and_save_cards_for_track(
     Returns:
         Tuple[Image.Image, Image.Image]: Generated card front and back images
     """
-    year = track["release_year"]
-    cleaned_name = track["name_cleaned"]
-    filename_base = f"{year}_{cleaned_name}".replace(" ", "_")
-    
+    filename_base = get_card_filename(track)
+
     front_img = generate_card_front(track, design=design)
     back_img = generate_card_back(track, design=design)
 
@@ -306,3 +321,150 @@ def generate_and_save_cards_for_playlist(
         generate_and_save_cards_for_track(track, output_dir, design)
 
     print(f"Generated cards saved to {output_dir}.")
+
+
+# Printable A4 sheets
+def calculate_a4_layout(
+        card_size_mm: float = 52.4, margin_mm: float = 0.0
+        ) -> dict:
+    """
+    Calculate card layout on A4 sheet.
+    Default fits 4x5=20 cards of size 52.4mm with no margin.
+    
+    Args:
+        card_size_mm (float): Size of each card (assumed square) in mm
+        margin_mm (float): Margin around the edges of the sheet in mm
+    Returns:
+        dict: Layout dictionary with measurements, grid and positions (front and back)
+    """
+    # convert sizes to points (1 mm = 2.83465 points)
+    mm_to_pt = 2.83465
+    card_size_pt = card_size_mm * mm_to_pt
+    margin_pt = margin_mm * mm_to_pt
+
+    a4_width_pt = A4[0]
+    a4_height_pt = A4[1]
+
+    usable_width = a4_width_pt - 2 * margin_pt
+    usable_height = a4_height_pt - 2 * margin_pt
+
+    rows = int(usable_height // (card_size_pt))
+    cols = int(usable_width // (card_size_pt))
+
+    grid = {"rows": rows, "cols": cols}
+
+    # calculate positions (bottom-left origin, top-left alignment, short-side flip)
+    front_positions = []
+    back_positions = []
+    for row in range(rows):
+        for col in range(cols):
+            x_front = margin_pt + col * card_size_pt
+            x_back = a4_width_pt - margin_pt - (col + 1) * card_size_pt
+            y = a4_height_pt - margin_pt - (row + 1) * card_size_pt
+            front_positions.append((x_front, y))
+            back_positions.append((x_back, y))
+
+    layout = {
+        "card_size_pt": card_size_pt,
+        "margin_pt": margin_pt,
+        "grid": grid,
+        "front_positions": front_positions,
+        "back_positions": back_positions,
+    }
+
+    return layout
+
+
+def draw_cut_marks(c: canvas.Canvas, x: float, y: float, card_size: float, mark_length: float = 10) -> None:
+    """
+    Draw L-shaped corner cut marks at the four corners of a card position.
+    
+    Args:
+        c: ReportLab canvas object
+        x: X coordinate of card (bottom-left corner)
+        y: Y coordinate of card (bottom-left corner)
+        card_size: Size of the card in points
+        mark_length: Length of each cut mark line in points
+    """
+    c.setStrokeColorRGB(1, 1, 1)  # White (for black backsides)
+    c.setLineWidth(0.5) 
+    
+    # Bottom-left corner
+    c.line(x, y, x + mark_length, y)  # horizontal
+    c.line(x, y, x, y + mark_length)  # vertical
+
+    # Bottom-right corner
+    c.line(x + card_size, y, x + card_size - mark_length, y)  # horizontal
+    c.line(x + card_size, y, x + card_size, y + mark_length)  # vertical
+
+    # Top-left corner
+    c.line(x, y + card_size, x + mark_length, y + card_size)  # horizontal
+    c.line(x, y + card_size, x, y + card_size - mark_length)  # vertical   
+
+    # Top-right corner
+    c.line(x + card_size, y + card_size, x + card_size - mark_length, y + card_size)  # horizontal
+    c.line(x + card_size, y + card_size, x + card_size, y + card_size - mark_length)  # vertical
+
+
+def generate_a4_pdf(playlist_dir: Path, output_path: Path) -> None:
+    """
+    Generate printable A4 PDF sheets with card images.
+
+    Args:
+        playlist_dir (Path): Directory containing playlist data
+        output_path (Path): Output PDF file path
+    """    
+    # Load data and layout
+    tracks = load_playlist_metadata(playlist_dir)
+    cards_dir = playlist_dir / "cards"
+    layout = calculate_a4_layout()
+
+    # create sheets
+    cards_per_page = layout["grid"]["rows"] * layout["grid"]["cols"]
+    num_sheets = math.ceil(len(tracks) / cards_per_page)
+    c = canvas.Canvas(str(output_path), pagesize=A4)
+    for page in range(num_sheets):
+        # front
+        for i in range(cards_per_page):
+            track_index = page * cards_per_page + i
+            if track_index >= len(tracks):
+                break
+            track = tracks[track_index]
+            filename_base = get_card_filename(track)
+            card_path = cards_dir / f"{filename_base}_front.png"
+            if not card_path.exists():
+                print(f"Warning: Card image not found: {card_path}")
+                continue
+            x, y = layout["front_positions"][i]
+            c.drawImage(
+                str(card_path),
+                x,
+                y,
+                width=layout["card_size_pt"],
+                height=layout["card_size_pt"]
+            )
+        c.showPage()
+
+        # back
+        for i in range(cards_per_page):
+            track_index = page * cards_per_page + i
+            if track_index >= len(tracks):
+                break
+            track = tracks[track_index]
+            filename_base = get_card_filename(track)
+            card_path = cards_dir / f"{filename_base}_back.png"
+            if not card_path.exists():
+                print(f"Warning: Card image not found: {card_path}")
+                continue
+            x, y = layout["back_positions"][i]
+            c.drawImage(
+                str(card_path),
+                x,
+                y,
+                width=layout["card_size_pt"],
+                height=layout["card_size_pt"]
+            )
+            draw_cut_marks(c, x, y, layout["card_size_pt"])
+        c.showPage()
+
+    c.save()
