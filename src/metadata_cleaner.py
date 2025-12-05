@@ -18,15 +18,39 @@ def clean_title(name: str, remove_version: bool = False) -> str:
 
     # Remove remaster/digital master patterns like:
     # - " - 2018 Remaster"
-    # - " - Remastered 2018"
+    # - " (Remastered 2018)"
     # - " - 2024 Digital Master"
-    # - " - 2011 Remastered Version"
-    name = re.sub(r"\s*-\s*\d{4}\s*(Remaster(ed)?( Version)?|Digital Master(ed)?)", "", name, flags=re.IGNORECASE)
-    name = re.sub(r"\s*-\s*(Remaster(ed)?( Version)?|Digital Master(ed)?)\s*\d{0,4}", "", name, flags=re.IGNORECASE)
+    # - " (2011 Remastered Version)"
+    pattern = r"""
+    (
+        # --- Hyphen-delimited versions ---
+        \s*-\s*
+        (
+            (\d{4}\s*)?(Remaster(ed)?( Version)?|Digital Master(ed)?)
+            |
+            (Remaster(ed)?( Version)?|Digital Master(ed)?)(\s*\d{4})?
+        )
+        |
+        # --- Parentheses versions ---
+        \(
+            \s*
+            (\d{4}\s*)?(Remaster(ed)?( Version)?|Digital Master(ed)?)
+            |
+            (Remaster(ed)?( Version)?|Digital Master(ed)?)(\s*\d{4})?
+            \s*
+        \)
+    )
+    """
+    name = re.sub(pattern, "", name, flags=re.IGNORECASE | re.VERBOSE)  
 
     # Optional: remove " - Live" or " - Acoustic"
     if remove_version:
-        name = re.sub(r"\s*-\s*(Live|Acoustic|Mono|Stereo Mix).*", "", name, flags=re.IGNORECASE)
+        name = re.sub(
+        r"(\s*-\s*(Live|Acoustic|Mono|Stereo Mix).*|\s*\((Live|Acoustic|Mono|Stereo Mix)[^)]*\))",
+    "",
+    name,
+    flags=re.IGNORECASE
+)
 
     # Clean up stray punctuation and whitespace
     name = re.sub(r"\s+[-–]+\s*$", "", name).strip()
