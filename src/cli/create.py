@@ -51,6 +51,7 @@ def create_cards(args):
     )
     
     # choose design option
+    # TODO: print available designs
     design_option = get_input_or_default(
         "Choose card design option\n"
         "(1) simple: black/white minimal \n"
@@ -93,12 +94,12 @@ def add_create_parser(subparsers):
     """
     parser = subparsers.add_parser(
         'create',
-        help='Generate track cards for Spotify playlists'
+        help='Generate song cards for Spotify playlists'
     )
     parser.add_argument("--playlist", type=str, help="Spotify playlist URL or ID")
     parser.add_argument("--custom-name", type=str, help="Custom folder name for playlist")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing data without prompts")
-    parser.add_argument("--design", type=str, choices=["simple", "colors", "vaporwave"], help="Card design option")
+    parser.add_argument("--design", type=str, help="Card design option")
     parser.add_argument("--generate-printable", action="store_true", help="Generate printable PDF sheets of cards")
     parser.add_argument("--validate-design", action="store_true", help="Validate design configuration and warn about missing fields")
     parser.add_argument("--skip-prompts", action="store_true", help="Skip interactive prompts and use defaults")

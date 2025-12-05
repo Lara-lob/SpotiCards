@@ -3,6 +3,7 @@
     "_description": "Card design configurations. Each design can inherit from 'simple' by omitting fields.",
     
     "simple": {
+        "description": "A clean and minimalistic black and white design.",
         "front": {
             "colors": {
                 "background": ["#FFFFFF"],
@@ -46,7 +47,18 @@
         }
     },
 
+    "white": {
+        "description": "Simple design with white backgrounds for efficient printing.",
+        "back": {
+            "colors": {
+                "background": ["#FFFFFF"],
+                "qr_border": ["#000000"]
+            }
+        }
+    },
+
     "vaporwave": {
+        "description": "A vaporwave-inspired retro design with neon colors.",
         "front": {
             "colors": {
                 "background": ["#FFFFFF"],
@@ -72,6 +84,7 @@
     },
 
     "colors": {
+        "description": "Simple design with a variety of bright background colors.",
         "front": {
             "colors": {
                 "background": ["#f8bb58", "#fee76f", "#c7e686", "#8dbc91", "#a3e1e2", "#7da0cd", "#bb90d5", "#fe97e4", "#e9666f"]

@@ -386,7 +386,8 @@ def draw_cut_marks(c: canvas.Canvas, x: float, y: float, card_size: float, mark_
         card_size: Size of the card in points
         mark_length: Length of each cut mark line in points
     """
-    c.setStrokeColorRGB(1, 1, 1)  # White (for black backsides)
+    c.setStrokeColorRGB(0.5, 0.5, 0.5)
+
     c.setLineWidth(0.5) 
     
     # Bottom-left corner
@@ -443,6 +444,7 @@ def generate_a4_pdf(playlist_dir: Path, output_path: Path) -> None:
                 width=layout["card_size_pt"],
                 height=layout["card_size_pt"]
             )
+            draw_cut_marks(c, x, y, layout["card_size_pt"])
         c.showPage()
 
         # back
