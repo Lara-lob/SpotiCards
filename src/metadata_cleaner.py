@@ -13,8 +13,8 @@ def clean_title(name: str, remove_version: bool = False) -> str:
     Returns:
         str: Cleaned track title
     """
-    # Remove "feat." or "featuring" or "with (...)"
-    name = re.sub(r"\s*[\(\[]?(feat\.|featuring|with)\s+[^\)\]]*[\)\]]?", "", name, flags=re.IGNORECASE)
+    # Remove "feat." or "featuring" 
+    name = re.sub(r"\s*[\(\[]?(feat\.|featuring)\s+[^\)\]]*[\)\]]?", "", name, flags=re.IGNORECASE)
 
     # Remove remaster/digital master patterns like:
     # - " - 2018 Remaster"

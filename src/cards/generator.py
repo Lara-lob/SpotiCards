@@ -287,7 +287,7 @@ def get_card_filename(track: dict) -> str:
     """
     year = track["release_year"]
     cleaned_name = track["name_cleaned"]
-    return f"{year}_{cleaned_name}".replace(" ", "_")
+    return f"{year}_{cleaned_name}".replace(" ", "_").replace("/", "_")
 
 
 def generate_and_save_cards_for_track(
